@@ -1,21 +1,37 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import type { Shape } from '@/canvas/types/shape';
+import { ref, computed } from 'vue';
+import type { Shape } from '@/canvas/types';
+import { shapeRegistry } from '@/canvas/types';
+import { generateId } from '@/canvas/utils/math';
 
 /**
- * Основное хранилище состояния сцены.
- * Хранит список фигур и ID выбранной фигуры.
- * Используется Canvas для рендера и GUI для отображения свойств.
+ * Хранилище состояния сцены: фигуры, выделение, операции.
  */
 export const useCanvasStore = defineStore('canvas', () => {
-    // State
     const shapes = ref<Shape[]>([]);
     const selectedId = ref<string | null>(null);
 
-    // Actions
-    // Пока просто заглушки, чтобы компоненты могли их вызывать без ошибок
-    function addShape(shape: Shape) {
+    const selectedShape = computed(
+        () => shapes.value.find((s) => s.id === selectedId.value) ?? null
+    );
+
+    function addShape(type: string, pos: { x: number; y: number }) {
+        const shape = shapeRegistry.create(type, generateId(), pos);
         shapes.value.push(shape);
+        return shape;
+    }
+
+    function updateShape(id: string, updates: Partial<Shape>) {
+        const shape = shapes.value.find((s) => s.id === id);
+        if (shape) {
+            Object.assign(shape, updates);
+            shapes.value = [...shapes.value];
+        }
+    }
+
+    function deleteShape(id: string) {
+        shapes.value = shapes.value.filter((s) => s.id !== id);
+        if (selectedId.value === id) selectedId.value = null;
     }
 
     function selectShape(id: string | null) {
@@ -25,7 +41,10 @@ export const useCanvasStore = defineStore('canvas', () => {
     return {
         shapes,
         selectedId,
+        selectedShape,
         addShape,
+        updateShape,
+        deleteShape,
         selectShape,
     };
 });

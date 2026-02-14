@@ -1,34 +1,47 @@
 import type { Ref } from 'vue';
-import type { Shape } from '@/canvas/types/shape';
+import type { Shape } from '@/canvas/types';
 
 /**
- * Отвечает за рендеринг фигур на HTML5 Canvas.
- * В будущем здесь будет requestAnimationFrame loop и offscreen buffer.
+ * Composable для отрисовки фигур на канвасе.
  */
 export function useCanvasRender(
     canvasRef: Ref<HTMLCanvasElement | null>,
-    shapes: Ref<Shape[]>
+    shapes: Ref<Shape[]>,
+    selectedId: Ref<string | null>
 ) {
-    // Основной метод перерисовки
-    // Вызывается при изменении размеров, зуме или изменении фигур
-    function draw() {
-        const canvas = canvasRef.value;
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        // Очистка холста
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Временная заглушка для визуализации работы
-        ctx.font = '20px sans-serif';
-        ctx.fillStyle = '#666';
-        ctx.fillText('Canvas Ready for Rendering', 20, 40);
-        ctx.fillText(`Shapes count: ${shapes.value.length}`, 20, 70);
+    /**
+     * Рисует рамку выделения вокруг фигуры.
+     */
+    function drawSelectionBox(ctx: CanvasRenderingContext2D, shape: Shape) {
+        const { minX, minY, maxX, maxY } = shape.getBoundingBox();
+        ctx.save();
+        ctx.strokeStyle = '#2196F3';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+        ctx.restore();
     }
 
-    return {
-        draw,
-    };
+    /**
+     * Основной цикл отрисовки. Очищает канвас и отрисовывает все фигуры.
+     */
+    function draw() {
+        const canvas = canvasRef.value;
+        const ctx = canvas?.getContext('2d');
+        if (!canvas || !ctx) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (const shape of shapes.value) {
+            ctx.save();
+            shape.render(ctx);
+            ctx.restore();
+
+            if (shape.id === selectedId.value) {
+                drawSelectionBox(ctx, shape);
+            }
+        }
+    }
+
+    return { draw };
 }

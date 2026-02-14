@@ -1,57 +1,56 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watchEffect } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useCanvasStore } from '@/stores/canvas';
 import { useCanvasRender } from '@/canvas/composables/useCanvasRender';
-
-/**
- * Основной компонент холста.
- * Инициализирует canvas элемент и связывает его с рендерером.
- * Обрабатывает изменение размеров родительского контейнера.
- */
+import { useInteractions } from '@/canvas/composables/useInteractions';
 
 const containerRef = ref<HTMLDivElement | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
 const canvasStore = useCanvasStore();
-const { shapes } = storeToRefs(canvasStore);
+const { shapes, selectedId } = storeToRefs(canvasStore);
 
-// Подключаем логику рендера
-const { draw } = useCanvasRender(canvasRef, shapes);
+const { draw } = useCanvasRender(canvasRef, shapes, selectedId);
+const { attachListeners } = useInteractions(canvasRef, shapes);
 
-// Обновляем размеры canvas при ресайзе окна
 let resizeObserver: ResizeObserver | null = null;
+let detachListeners: (() => void) | undefined;
+
+/**
+ * Обновляет размер канваса в соответствии с размером контейнера.
+ */
+const updateCanvasSize = () => {
+    if (!containerRef.value || !canvasRef.value) return;
+
+    const { clientWidth, clientHeight } = containerRef.value;
+
+    if (
+        canvasRef.value.width !== clientWidth ||
+        canvasRef.value.height !== clientHeight
+    ) {
+        canvasRef.value.width = clientWidth;
+        canvasRef.value.height = clientHeight;
+        draw();
+    }
+};
 
 onMounted(() => {
+    // 1. Настройка реакции на изменение размера окна/панели
     if (containerRef.value) {
-        resizeObserver = new ResizeObserver((entries) => {
-            // Синхронизируем размер canvas с размером контейнера
-            // Это критично, чтобы не было "растянутых" пикселей
-            const entry = entries[0];
-            if (!entry) return;
-
-            const { width, height } = entry.contentRect;
-            if (canvasRef.value) {
-                canvasRef.value.width = width;
-                canvasRef.value.height = height;
-                draw(); // Перерисовать после ресайза
-            }
-        });
+        resizeObserver = new ResizeObserver(updateCanvasSize);
         resizeObserver.observe(containerRef.value);
     }
 
-    // Первая отрисовка
-    draw();
+    detachListeners = attachListeners();
 });
 
 onUnmounted(() => {
     resizeObserver?.disconnect();
+    detachListeners?.();
 });
 
-// Реакция на изменение данных (пока для теста)
-watchEffect(() => {
-    if (shapes.value) draw();
-});
+watch([shapes, selectedId], () => requestAnimationFrame(draw), { deep: true });
 </script>
 
 <template>
@@ -67,11 +66,14 @@ watchEffect(() => {
     overflow: hidden;
     background-color: #ffffff;
     position: relative;
+    display: block;
 }
 
 .main-canvas {
     display: block;
-    /* Курсор будет меняться в зависимости от инструмента */
+    width: 100%;
+    height: 100%;
+    /* Курсор управляется через JS в useInteractions */
     cursor: default;
 }
 </style>
