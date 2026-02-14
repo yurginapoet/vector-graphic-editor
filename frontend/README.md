@@ -1,4 +1,4 @@
-# Vector Editor
+# Vector Editor FRONTEND (vibe-editor)
 
 Простой векторный редактор на Vue 3 + TypeScript + Canvas 2D.
 
