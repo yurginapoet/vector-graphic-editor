@@ -109,3 +109,13 @@ PR должен:
 ---
 
 Соблюдение этих правил обеспечивает прозрачность изменений и стабильность основной ветки.
+
+## 9. Сборка и запуск
+
+### Devcontainer
+
+VSC Extension: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+
+Собрать контейнер и открыть проект: `F1 -> Dev Containers: Rebuild and Reopen in Container`
+
+Любой используемый инструмент должен быть добавлен в описание контейнера.

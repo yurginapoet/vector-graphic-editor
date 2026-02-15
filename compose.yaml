@@ -1,0 +1,14 @@
+networks:
+  editor:
+    driver: bridge
+
+services:
+  # backend:
+  #   image: ...
+  #   networks:
+  #     - editor
+
+  # frontend:
+  #   image: ...
+  #   networks:
+  #     - editor
