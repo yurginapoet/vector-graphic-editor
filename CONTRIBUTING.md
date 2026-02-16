@@ -95,7 +95,6 @@ git checkout feature/<номер-issue>-описание
 ```bash
 git push --force-with-lease origin feature/<номер-issue>-описание
 ```
-*(Если ветка отправляется впервые и rebase не требовался, можно использовать обычный `git push`)*
 
 **Шаг 6. Создать Pull Request в `main`**   
 Перейдите в интерфейс репозитория и создайте PR из вашей ветки в `main`.   
