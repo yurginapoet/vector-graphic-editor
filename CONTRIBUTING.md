@@ -79,6 +79,9 @@ git fetch origin
 # 2. Ребазируем на origin/main
 git rebase origin/main
 
+# 3. Возвращаемся на свою ветку:   
+git checkout feature/<номер-issue>-описание
+
 # ⚠️ Если возникли конфликты:
 #    - Исправьте ошибки в файлах вручную.
 #    - Добавьте исправленные файлы: git add .
