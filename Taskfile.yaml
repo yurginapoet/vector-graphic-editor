@@ -1,6 +1,14 @@
 version: '3'
 
+includes:
+  server:
+    taskfile: ./server/Taskfile.yaml
+    dir: ./server
+
 tasks:
+  build:
+    cmds:
+      - task: server:image
   deploy:
     cmds:
-      docker compose up -d
+      - docker compose up -d
