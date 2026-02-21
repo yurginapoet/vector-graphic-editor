@@ -3,10 +3,10 @@ networks:
     driver: bridge
 
 services:
-  # backend:
-  #   image: ...
-  #   networks:
-  #     - editor
+  server:
+    image: editor-server:latest
+    networks:
+      - editor
 
   # frontend:
   #   image: ...
